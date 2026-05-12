@@ -1,6 +1,9 @@
 import { useJamboardStore } from '../store/useJamboardStore';
 import type { ToolType } from '../types';
 
+// Get the current editor instance from window (set by CanvasContent)
+const getEditor = () => (window as any).__jamboardEditor;
+
 interface ToolButtonProps {
   tool: ToolType;
   icon: React.ReactNode;
@@ -13,9 +16,32 @@ const ToolButton: React.FC<ToolButtonProps> = ({ tool, icon, label }) => {
   
   const isActive = activeTool === tool;
   
+  const handleClick = () => {
+    // Update local state
+    setActiveTool(tool);
+    
+    // Directly call editor method
+    const editor = getEditor();
+    if (editor) {
+      const toolMap: Record<string, string> = {
+        'select': 'select',
+        'draw': 'draw',
+        'sticky': 'geo',
+        'eraser': 'erase',
+      };
+      
+      editor.setCurrentTool(toolMap[tool] || 'select');
+      
+      // For sticky notes, set the style
+      if (tool === 'sticky') {
+        editor.setStyleForNextShapes({ fill: 'solid', color: '#ffff88' });
+      }
+    }
+  };
+  
   return (
     <button
-      onClick={() => setActiveTool(tool)}
+      onClick={handleClick}
       className={`
         flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all duration-200
         ${isActive 
@@ -33,7 +59,7 @@ const ToolButton: React.FC<ToolButtonProps> = ({ tool, icon, label }) => {
 
 export const FloatingToolbar = () => {
   return (
-    <aside className="fixed left-4 top-1/2 -translate-y-1/2 z-40">
+    <aside className="fixed left-4 top-1/2 -translate-y-1/2 z-50">
       <div className="flex flex-col gap-2 p-3 bg-white/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20">
         {/* Select Tool */}
         <ToolButton

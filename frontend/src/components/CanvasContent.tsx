@@ -1,34 +1,59 @@
-import { Tldraw, useEditor } from '@tldraw/tldraw';
-import { useEffect } from 'react';
+import { Tldraw } from '@tldraw/tldraw';
+import { useEffect, useState } from 'react';
 import { useJamboardStore } from '../store/useJamboardStore';
-
-// Custom shape for sticky notes with square aspect ratio and yellow background
-const StickyNoteShape = {
-  type: 'sticky' as const,
-  props: {
-    w: 200,
-    h: 200,
-    color: '#ffff88',
-    text: '',
-  },
-};
 
 interface CanvasContentProps {
   slideId: string;
 }
 
 export const CanvasContent: React.FC<CanvasContentProps> = ({ slideId }) => {
-  const activeTool = useJamboardStore((state) => state.activeTool);
+  const [editorInstance, setEditorInstance] = useState<any>(null);
   const getSlideData = useJamboardStore((state) => state.getSlideData);
   const setSlideData = useJamboardStore((state) => state.setSlideData);
   
+  // Handle tool changes from toolbar - sync to editor instance
+  useEffect(() => {
+    if (!editorInstance) return;
+    
+    const handleToolChange = (tool: string) => {
+      // Map our tool names to tldraw tools
+      const toolMap: Record<string, string> = {
+        'select': 'select',
+        'draw': 'draw',
+        'sticky': 'geo',
+        'eraser': 'erase',
+      };
+      
+      const tldrawTool = toolMap[tool] || 'select';
+      editorInstance.setCurrentTool(tldrawTool);
+      
+      // For sticky notes, set the style
+      if (tool === 'sticky') {
+        editorInstance.setStyleForNextShapes({ fill: 'solid', color: '#ffff88' });
+      }
+    };
+    
+    // Subscribe to tool changes from store
+    const unsubscribe = useJamboardStore.subscribe(
+      (state) => state.activeTool,
+      (tool) => handleToolChange(tool)
+    );
+    
+    // Set initial tool
+    const initialTool = useJamboardStore.getState().activeTool;
+    handleToolChange(initialTool);
+    
+    return () => unsubscribe();
+  }, [editorInstance]);
+  
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full relative">
       <Tldraw
         persistenceKey={`slide:${slideId}`}
         onMount={(editor) => {
-          // Set up custom tools and shapes
-          editor.setCurrentTool(activeTool === 'sticky' ? 'geo' : activeTool === 'eraser' ? 'erase' : activeTool);
+          // Store editor instance globally for other components to access
+          (window as any).__jamboardEditor = editor;
+          setEditorInstance(editor);
           
           // Load existing slide data
           const slideData = getSlideData(slideId);
@@ -54,26 +79,4 @@ export const CanvasContent: React.FC<CanvasContentProps> = ({ slideId }) => {
       />
     </div>
   );
-};
-
-// Internal component to react to tool changes
-const ToolSync: React.FC<{ slideId: string }> = ({ slideId }) => {
-  const editor = useEditor();
-  const activeTool = useJamboardStore((state) => state.activeTool);
-  
-  useEffect(() => {
-    if (activeTool === 'sticky') {
-      // Switch to rectangle/shape tool for sticky notes
-      editor.setCurrentTool('geo');
-      editor.setStyleForNextShapes({ fill: 'solid', color: '#ffff88' });
-    } else if (activeTool === 'draw') {
-      editor.setCurrentTool('draw');
-    } else if (activeTool === 'select') {
-      editor.setCurrentTool('select');
-    } else if (activeTool === 'eraser') {
-      editor.setCurrentTool('erase');
-    }
-  }, [activeTool, editor]);
-  
-  return null;
 };
