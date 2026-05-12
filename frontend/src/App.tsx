@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { FrameNavigator } from './components/FrameNavigator';
 import { FloatingToolbar } from './components/FloatingToolbar';
 import { CanvasContent } from './components/CanvasContent';
@@ -16,8 +15,10 @@ function App() {
   const currentSlideIndex = useJamboardStore((state) => state.currentSlideIndex);
   const slides = useJamboardStore((state) => state.slides);
   
-  // Get current slide ID
-  const currentSlideId = slides?.get(currentSlideIndex)?.id || null;
+  // Get current slide ID - use first slide if available
+  const currentSlideId = slides && slides.length > 0 
+    ? slides.get(currentSlideIndex)?.id || slides.get(0)?.id
+    : null;
   
   // Show loading state while Yjs initializes
   if (!doc || !currentSlideId) {

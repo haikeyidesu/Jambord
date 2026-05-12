@@ -1,43 +1,11 @@
-```gitignore
+```
 # Dependencies
 node_modules/
 
 # Build outputs
-```
-# Dependencies
-node_modules/
-vendor/
-
-# Build artifacts
 dist/
 build/
 target/
-
-# Python
-# Go specific
-*.o
-*.a
-*.so
-*.exe
-*.dll
-*.dylib
-*.test
-*.prof
-
-# Python specific (in case Python files are added later)
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-.ENV
-.python-version
-.pytest_cache/
-.mypy_cache/
-.coverage
 
 # Logs
 *.log
@@ -52,14 +20,26 @@ venv/
 .idea/
 *.swp
 *.swo
-*.tmp
 
-# OS files
-.DS_Store
-Thumbs.db
-
-# Coverage reports
-coverage/
-htmlcov/
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
 .coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git/modules/
+.DS_Store
 ```
