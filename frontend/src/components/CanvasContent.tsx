@@ -28,7 +28,7 @@ export const CanvasContent: React.FC<CanvasContentProps> = ({ slideId }) => {
         persistenceKey={`slide:${slideId}`}
         onMount={(editor) => {
           // Set up custom tools and shapes
-          editor.updateInstanceState({ toolId: `geo:${activeTool}` });
+          editor.setCurrentTool(activeTool === 'sticky' ? 'geo' : activeTool === 'eraser' ? 'erase' : activeTool);
           
           // Load existing slide data
           const slideData = getSlideData(slideId);
@@ -57,7 +57,7 @@ export const CanvasContent: React.FC<CanvasContentProps> = ({ slideId }) => {
 };
 
 // Internal component to react to tool changes
-const ToolSync: React.FC = () => {
+const ToolSync: React.FC<{ slideId: string }> = ({ slideId }) => {
   const editor = useEditor();
   const activeTool = useJamboardStore((state) => state.activeTool);
   
@@ -65,7 +65,7 @@ const ToolSync: React.FC = () => {
     if (activeTool === 'sticky') {
       // Switch to rectangle/shape tool for sticky notes
       editor.setCurrentTool('geo');
-      editor.setStyleForNextShapes({ fill: 'solid', color: 'yellow' });
+      editor.setStyleForNextShapes({ fill: 'solid', color: '#ffff88' });
     } else if (activeTool === 'draw') {
       editor.setCurrentTool('draw');
     } else if (activeTool === 'select') {
